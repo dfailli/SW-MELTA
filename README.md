@@ -1,1 +1,3 @@
-# SW-MELTA
+# SW-MELTA: Sample-Weighted Mixture of Experts Latent Trait Analyzers
+
+**SW-MELTA** extends the **Mixture of Experts Latent Trait Analyzers (MELTA)** framework to handle **complex survey designs**. MELTA is a model-based clustering approach for multivariate binary data that integrates finite mixtures with multidimensional latent traits. It further allows modeling the impact of covariates on cluster allocation, on the conditional responses’ distribution, on both (as in standard mixtures of experts models), or on neither. To deal with survey data, MELTA is extended by formally incorporating sampling weights into both the estimation algorithm and the uncertainty quantification. The proposed framework enables the identification of population-level latent clusters, while also assessing the role of observed features in cluster formation and observed responses in the target population.
