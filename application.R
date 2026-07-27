@@ -1,6 +1,6 @@
 # Data ####
 rm(list=ls())
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/data.RData")
+load("data.RData")
 sw=mysample$PESI
 sw <- sw * (length(sw) / sum(sw))
 hist(sw)
@@ -9,7 +9,6 @@ sum(sw)
 
 # Code ####
 
-setwd("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION")
 source("code_application.R")
 
 
@@ -38,10 +37,9 @@ Sys.setenv(VECLIB_MAXIMUM_THREADS = 1)
 options(mc.cores = 1)
 
 rm(list=ls())
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/data.RData")
+load("data.RData")
 sw <- mysample$PESI
 sw <- sw * (length(sw) / sum(sw))
-setwd("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION")
 source("code_application.R")
 
 library(foreach)
@@ -71,7 +69,7 @@ save(results, file="results.RData")
 
 # Results model selection ####
 
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION/results.RData")
+load("results.RData")
 
 grid <- expand.grid(G=2:4, D=1:4)  
 
@@ -88,17 +86,15 @@ save(mod11, mod12, mod13, mod14,
      file="mod.RData")
 
 rm(list=ls())
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/data.RData")
+load("data.RData")
 
 sw=mysample$PESI
 # sw <- sw * (length(sw) / sum(sw))
 # hist(sw)
 # sum(sw)
 
-setwd("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION")
 source("code_application.R")
-
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION/mod.RData")
+load("mod.RData")
 
 MOD=mod23
 
@@ -144,17 +140,16 @@ Sys.setenv(VECLIB_MAXIMUM_THREADS = 1)
 options(mc.cores = 1)
 
 rm(list=ls())
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/data.RData")
+load("data.RData")
 
 sw=mysample$PESI
 # sw <- sw * (length(sw) / sum(sw))
 # hist(sw)
 # sum(sw)
 
-setwd("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION")
 source("code_application.R")
 
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION/mod.RData")
+load("mod.RData")
 
 MOD=mod23
 
@@ -197,8 +192,6 @@ for (bl in 1:n_blocks) {
     
     sw_boot = rep(N_pseudo/n, n)
     sw_boot <- sw_boot * (length(sw_boot) / sum(sw_boot))
-    # hist(sw_boot)
-    sum(sw_boot)
     
     mod = f_MELTA_nstarts_vfix(Y=y_boot, X=x_boot, G=2, D=3, 
                              nstarts=1, tol=1e-4, maxiter=1000,
@@ -217,9 +210,9 @@ for (bl in 1:n_blocks) {
 # RESULTS SE ####
 
 rm(list=ls())
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/data.RData")
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION/mod.RData")
-load("C:/Users/faill/OneDrive/Desktop/Mixture of experts LTA/APPLICATION/se_finite_boot.RData")
+load("Cdata.RData")
+load("mod.RData")
+load("se_finite_boot.RData")
 
 N <- nrow(y)
 
