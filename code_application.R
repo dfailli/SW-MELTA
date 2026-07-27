@@ -1,11 +1,6 @@
 library(MASS)
 library(foreach)
 library(mclust)
-# library(ggplot2)
-# library(doParallel)
-# library(plotrix)
-# library(cds)
-# .errorhandling = 'pass'
 
 ## Model estimation ####
 
@@ -48,13 +43,10 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
   for(i in 1:N)   z[i,] <- t(rmultinom(1, size = 1, prob = eta[i,]))
   
   v <- matrix(rnorm(L * D), D, L)
-  # v <- matrix(rnorm(L * D,0,0.000001), D, L)
   
   b=matrix(rnorm(L*G,0, 0.000001), G, L) # matrix(rnorm(G*L), G, L)
   ord.b=order(apply(b,1,mean))
   b <- b[ord.b,]
-  # ord.g=order(apply(delta,1,mean))
-  # delta <- delta[ord.g,]
   
   
   # Variational approximation initialization
@@ -74,8 +66,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
   iter <- 0
   cond <- TRUE
   
-  # tol <- 10^-4
-  # maxiter=100
   print(c(beta))
   
   lxi <- matrix(0, N, G) # variational approx
@@ -153,7 +143,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
         
         K[(D+G+1):dim_wh, 2:(G + 1), l] = t(K[2:(G + 1), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -282,7 +271,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
                                                        c(2,3), function(xx) crossprod(xx, X_gamma))[,,l])
         K[(D+G+1):dim_wh, (D+1):(G + D), l] = t(K[(D+1):(G + D), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -417,7 +405,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
         
         K[(D+G+1):dim_wh, (D+1):(G + D), l] = t(K[(D+1):(G + D), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -525,21 +512,9 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
     den <- apply(num, 1, sum)
     z <- num / den
     
-    # num <- t(apply(exp(lxi2),1,function(x) x*eta))
-    # if(any(is.nan(num))) browser()
-    # #num[is.nan(num)] <- 0
-    # den <- apply(num, 1, sum)
-    # z1 <- num / den
-    
-    # fyij=rowSums(t(apply(exp(lxi),1,function(x) x*eta)))
-    # log.fyij=log(fyij)
-    # fyi=exp(tapply(log.fyij, gr.sample, sum))
-    # fy=sum(log(fyi))
-    
     
     # Log-likelihood
     
-    # ll <- sum(rep(1, N) * log(den))
     ll <- sum(sw * log(den))
     
     
@@ -555,7 +530,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
   
   # Correction to the log-likelihood: Gauss-Hermite Quadrature
   
-  # npoints <- 7           
   Qd <- npoints ^ D       
   GaHer <- glmmML::ghq(npoints, FALSE)                     
   ugh <- as.matrix(expand.grid(rep(list(GaHer$zeros), D))) 
@@ -580,7 +554,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
       pgh <- 1 / (1 + exp(-Agh))
       fxy[i, , g] <-
         exp(tcrossprod(Y[i,], log(pgh)) + tcrossprod(1 - Y[i,], log(1 - pgh)))
-      # fxy[is.nan(fxy[, , g])] <- 0 
     }
   }
   
@@ -589,10 +562,6 @@ f_MELTA_vfix <- function(Y, X, G, D, tol, maxiter, npoints, sw)
   AICva <- -2 * LLva + 2 * npar
   
   llGH1 <- apply(aperm(apply(fxy,c(1,3),function(x) x*Ww*Phi),c(2,1,3)),c(1,3),sum)
-  # llGH2=exp(apply(log(llGH1), 2, function(col) tapply(col, gr.sample, sum)))
-  # flog=log(rowSums(t(apply(llGH1,1,function(x) x*eta))))
-  # flogi=exp(tapply(flog, gr.sample, sum))
-  # LL <- sum(log(flogi))
   LL = sum(sw * log(rowSums(t(apply(llGH1,1,function(x) x*eta)))))
   AIC <- -2 * LL + 2 * npar
   
@@ -662,7 +631,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
   # Parameter initialization
   
   beta <- beta.init
-  # beta=beta0
   
   gamma <- gamma.init
   
@@ -694,7 +662,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
   iter <- 0
   cond <- TRUE
   
-  # tol <- 10^-5
   print(c(beta))
   
   lxi <- matrix(0, N, G) # variational approx
@@ -772,7 +739,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
         
         K[(D+G+1):dim_wh, 2:(G + 1), l] = t(K[2:(G + 1), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -901,7 +867,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
                                                        c(2,3), function(xx) crossprod(xx, X_gamma))[,,l])
         K[(D+G+1):dim_wh, (D+1):(G + D), l] = t(K[(D+1):(G + D), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -1036,7 +1001,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
         
         K[(D+G+1):dim_wh, (D+1):(G + D), l] = t(K[(D+1):(G + D), (D+G+1):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(array(apply(lambda_xi,2,function(x) sw*z*x),c(N,G,L)),
                                                    c(2,3), function(xx) xx*X_gamma),c(N,P_gamma,G,L)),
                                        c(3,4), function(xxx) xxx*X_gamma),c(N,P_gamma,G,L)), # gamma gamma
@@ -1143,22 +1107,10 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
     #v[is.nan(v)] <- 0
     den <- apply(num, 1, sum)
     z <- num / den
-    
-    # num <- t(apply(exp(lxi2),1,function(x) x*eta))
-    # if(any(is.nan(num))) browser()
-    # #num[is.nan(num)] <- 0
-    # den <- apply(num, 1, sum)
-    # z1 <- num / den
-    
-    # fyij=rowSums(t(apply(exp(lxi),1,function(x) x*eta)))
-    # log.fyij=log(fyij)
-    # fyi=exp(tapply(log.fyij, gr.sample, sum))
-    # fy=sum(log(fyi))
-    
+  
     
     # Log-likelihood
     
-    # ll <- sum(rep(1, N) * log(den))
     ll <- sum(sw * log(den))
     
     
@@ -1174,7 +1126,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
   
   # Correction to the log-likelihood: Gauss-Hermite Quadrature
   
-  # npoints <- 7           
   Qd <- npoints ^ D       
   GaHer <- glmmML::ghq(npoints, FALSE)                     
   ugh <- as.matrix(expand.grid(rep(list(GaHer$zeros), D))) 
@@ -1199,7 +1150,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
       pgh <- 1 / (1 + exp(-Agh))
       fxy[i, , g] <-
         exp(tcrossprod(Y[i,], log(pgh)) + tcrossprod(1 - Y[i,], log(1 - pgh)))
-      # fxy[is.nan(fxy[, , g])] <- 0 
     }
   }
   
@@ -1208,10 +1158,6 @@ f_MELTA_vfix_final <- function(Y, X, G, D, tol, maxiter, npoints, sw,
   AICva <- -2 * LLva + 2 * npar
   
   llGH1 <- apply(aperm(apply(fxy,c(1,3),function(x) x*Ww*Phi),c(2,1,3)),c(1,3),sum)
-  # llGH2=exp(apply(log(llGH1), 2, function(col) tapply(col, gr.sample, sum)))
-  # flog=log(rowSums(t(apply(llGH1,1,function(x) x*eta))))
-  # flogi=exp(tapply(flog, gr.sample, sum))
-  # LL <- sum(log(flogi))
   LL = sum(sw * log(rowSums(t(apply(llGH1,1,function(x) x*eta)))))
   AIC <- -2 * LL + 2 * npar
   
@@ -1284,13 +1230,8 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
   gamma <- matrix(rep(0, P_gamma*L), nrow=P_gamma, ncol=L)
   
   v <- matrix(rnorm(L * D), D, L)
-  # v <- matrix(rnorm(L * D,0,0.000001), D, L)
   
   b=matrix(rnorm(L,0, 0.000001), 1, L) # matrix(rnorm(G*L), G, L)
-  # ord.b=order(apply(b,1,mean))
-  # b <- b[ord.b,]
-  # ord.g=order(apply(delta,1,mean))
-  # delta <- delta[ord.g,]
   
   
   # Variational approximation initialization
@@ -1309,9 +1250,6 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
   diff <- 1
   iter <- 0
   cond <- TRUE
-  
-  # tol <- 10^-2
-  # maxiter=100
   
   lxi <- matrix(0, N, 1) # variational approx
   
@@ -1664,7 +1602,6 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
     
     # Log-likelihood
     
-    # ll <- sum(rep(1, N) * log(den))
     ll <- sum(sw * lxi)
     
     
@@ -1680,7 +1617,6 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
   
   # Correction to the log-likelihood: Gauss-Hermite Quadrature
   
-  # npoints <- 7           
   Qd <- npoints ^ D       
   GaHer <- glmmML::ghq(npoints, FALSE)                     
   ugh <- as.matrix(expand.grid(rep(list(GaHer$zeros), D))) 
@@ -1702,7 +1638,6 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
     pgh <- 1 / (1 + exp(-Agh))
     fxy[i, ] <-
       exp(tcrossprod(Y[i,], log(pgh)) + tcrossprod(1 - Y[i,], log(1 - pgh)))
-    # fxy[is.nan(fxy[, , g])] <- 0 
   }
   
   LLva <- ll
@@ -1711,10 +1646,6 @@ f_MELTA_g1 <- function(Y, X, D, tol, maxiter, npoints, sw)
   
   fxy[!is.finite(fxy)] <- 0
   llGH1 <- rowSums(t(apply(fxy,c(1),function(x) x*Ww*Phi)))
-  # llGH2=exp(apply(log(llGH1), 2, function(col) tapply(col, gr.sample, sum)))
-  # flog=log(rowSums(t(apply(llGH1,1,function(x) x*eta))))
-  # flogi=exp(tapply(flog, gr.sample, sum))
-  # LL <- sum(log(flogi))
   LL = sum(sw * log(llGH1))
   AIC <- -2 * LL + 2 * npar
   
@@ -1778,7 +1709,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
   dim_wh  <- D + 1 + P_gamma
   
   # Parameter initialization
-  # gamma.init may include intercept row (zeros) -- strip it
   if(!is.null(gamma.init) && nrow(as.matrix(gamma.init)) == P)
     gamma.init <- as.matrix(gamma.init)[-1, , drop=FALSE]
   gamma <- gamma.init
@@ -2111,7 +2041,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
         
         K[(D+2):dim_wh, (D+1), l] = t(K[(D+1), (D+2):dim_wh, l]) # gamma b
         
-        # gamma gamma diagonal G=1 (loop for P_gamma=1 compatibility)
         valori_gg <- apply(array(apply(array(apply(lambda_xi * sw,
                                                    c(2), function(xx) xx*X_gamma),c(N,P_gamma,L)),
                                        c(3), function(xxx) xxx*X_gamma),c(N,P_gamma,L)), # gamma gamma
@@ -2158,7 +2087,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
     
     # Log-likelihood
     
-    # ll <- sum(rep(1, N) * log(den))
     ll <- sum(sw * lxi)
     
     
@@ -2174,7 +2102,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
   
   # Correction to the log-likelihood: Gauss-Hermite Quadrature
   
-  # npoints <- 7           
   Qd <- npoints ^ D       
   GaHer <- glmmML::ghq(npoints, FALSE)                     
   ugh <- as.matrix(expand.grid(rep(list(GaHer$zeros), D))) 
@@ -2196,7 +2123,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
     pgh <- 1 / (1 + exp(-Agh))
     fxy[i, ] <-
       exp(tcrossprod(Y[i,], log(pgh)) + tcrossprod(1 - Y[i,], log(1 - pgh)))
-    # fxy[is.nan(fxy[, , g])] <- 0 
   }
   
   LLva <- ll
@@ -2205,10 +2131,6 @@ f_MELTA_g1_final <- function(Y, X, D, tol, maxiter, npoints, sw,
   
   fxy[!is.finite(fxy)] <- 0
   llGH1 <- rowSums(t(apply(fxy,c(1),function(x) x*Ww*Phi)))
-  # llGH2=exp(apply(log(llGH1), 2, function(col) tapply(col, gr.sample, sum)))
-  # flog=log(rowSums(t(apply(llGH1,1,function(x) x*eta))))
-  # flogi=exp(tapply(flog, gr.sample, sum))
-  # LL <- sum(log(flogi))
   LL = sum(sw * log(llGH1))
   AIC <- -2 * LL + 2 * npar
   
@@ -2394,13 +2316,6 @@ f_MELTA_nstarts_vfix <- function(Y, X, G, D, nstarts, tol, maxiter, npoints, sw)
     }
   }
   
-  # b.init=out$b
-  # v.init=out$v
-  # gamma.init=out$gamma
-  # beta.init=out$beta
-  # out=try(f_MELTA_vfix_final(Y, X, G, D, tol=0.9, maxiter, npoints, sw, 
-  #                            b.init=b.init, v.init = v.init, gamma.init = gamma.init, beta.init = beta.init))
-  
   return(out)
 }
 
@@ -2416,189 +2331,8 @@ f_MELTA_g1_nstarts_vfix <- function(Y, X, D, nstarts, tol, maxiter, npoints, sw)
     }
   }
   
-  # b.init=out$b
-  # v.init=out$v
-  # gamma.init=out$gamma
-  # out=try(f_MELTA_g1_final(Y, X, D, tol=0.9, maxiter, npoints, sw, 
-  #                          b.init=b.init, v.init = v.init, gamma.init = gamma.init))
-  
   return(out)
 }
-
-# f_D0 <-function(Y, X, G, D, tol, maxiter){
-#   
-#   
-#   N <- nrow(Y)         # units
-#   L <- ncol(Y)         # items
-#   P <- ncol(X)  # covariates
-#   
-#   
-#   # Parameters initialization
-#   
-#   beta <- rep(0,P*L)
-#   beta <- matrix(beta,ncol=L)
-#   
-#   eta <- rep(1 / G, G)
-#   
-#   z1 <- t(rmultinom(m, size = 1, prob = eta)) 
-#   
-#   group_matrix <- matrix(0, nrow = N, ncol = max(gr.sample))
-#   for (i in 1:N) {
-#     group_matrix[i, gr.sample[i]] <- 1
-#   }
-#   grouped_results <- group_matrix %*% z1
-#   
-#   z = grouped_results
-#   
-#   
-#   b=matrix(rnorm(G*L), G, L)
-#   
-#   
-#   # f(y|z)=fxy
-#   
-#   p <- (t(z) %*% Y) / colSums(z) 
-#   PS = array(apply(p, 1, function(xx) dbinom(c(Y), 1, xx)), c(N, L, G))
-#   #PS <- t(p %*% t(X) + (1-p)%*%t(1 - X))
-#   fxy <- apply(PS, c(1,3), prod)
-#   
-#   
-#   # Initialize Aitken acceleration
-#   # l <- numeric(3)
-#   # lA <- numeric(2)
-#   
-#   
-#   # Iterative process
-#   
-#   v <- matrix(0, N, G)
-#   ll <- -Inf
-#   diff <- 1
-#   iter <- 0
-#   
-#   while(diff > tol & iter < maxiter)
-#   {
-#     iter <- iter + 1
-#     beta.old=beta
-#     ll_old <- ll
-#     
-#     # E-step
-#     
-#     PS = array(apply(p, 1, function(xx) dbinom(c(Y), 1, xx)), c(N, L, G))
-#     #PS <- t(p %*% t(X) + (1-p)%*%t(1 - X))
-#     fxy <- apply(PS, c(1,3), prod)
-#     
-#     
-#     fxy2=apply(fxy, 2, function(col) tapply(col, gr.sample, sum))
-#     
-#     num <- t(apply(exp(fxy2),1,function(x) x*eta))
-#     if(any(is.nan(num))) browser()
-#     #v[is.nan(v)] <- 0
-#     den <- apply(num, 1, sum)
-#     z1 <- num / den
-#     
-#     grouped_results <- group_matrix %*% z1
-#     z = grouped_results
-#     
-#     
-#     # M-step
-#     
-#     p = colSums(z1)/m
-#     eta = p
-#     
-#     onesg=matrix(1,1,G)  
-#     onesn=matrix(1,1,N)
-#     ym = t(onesg)%x%Y
-#     xm = t(onesg)%x%X
-#     
-#     for (l in 1:L) {
-#       for(g in 1:G){
-#         
-#         mod1=glm(cbind(ym[,l],1-ym[,l]) ~ xm - 1, offset=b[,l]%x%t(onesn),family = binomial(link = logit), weights=c(z)) #control = list(maxit = 2)
-#         beta[,l] = mod1$coef
-#         
-#         mod2=glm(cbind(Y[,l],1-Y[,l]) ~ 1, offset=X%*%beta[,l], family = binomial(link = logit), weights=z[,g]) #control = list(maxit = 2)
-#         b[g,l] = mod2$coef
-#       }
-#     }
-#     
-#     
-#     # Log-likelihood
-#     
-#     fyij=rowSums(t(apply(fxy,1,function(x) x*eta)))
-#     log.fyij=log(fyij)
-#     fyi=exp(tapply(log.fyij, gr.sample, sum))
-#     fy=sum(log(fyi))
-#     
-#     ll <- fy
-#     
-#     diff <- sum(abs(ll - ll_old))
-#     # Aitken acceleration
-#     # l <- c(l[-1], ll)
-#     # Out <- AitkenAcc(l, lA, iter)
-#     # diff <- Out[1]
-#     # lA <- Out[-1]
-#   }
-#   
-#   # p <- (t(zz2) %*% X) / colSums(zz2) 	# pi_gm proportion of positive response in group g
-#   
-#   npar = (P_gamma * L) + (G * L) + (G - 1)
-#   AIC <- -2*ll + 2 * npar
-#   
-#   # expected <- vsum * N
-#   
-#   rownames(b) <- NULL
-#   colnames(b) <- colnames(b, do.NULL = FALSE, prefix = "Item ")
-#   rownames(b) <- rownames(b, do.NULL = FALSE, prefix = "Cluster ")
-#   
-#   colnames(beta) <- colnames(Y)
-#   rownames(beta) <- colnames(X)
-#   
-#   names(ll)<- "Log-Likelihood:"
-#   names(AIC)<-"AIC:"
-#   
-#   out <- list(eta = eta, beta=beta, b=b, z=z, z1=z1, LL = ll, AIC = AIC)
-#   list(eta = eta, beta=beta, b=b, z=z, z1=z1, LL = ll, AIC = AIC)
-#   
-# }
-# 
-# 
-# f_D0_nstarts <- function(Y, X, gr.sample, G, D, m, nstarts, tol, maxiter) {
-#   
-#   out <- f_D0(Y, X, gr.sample, G, D, m, tol, maxiter)
-#   
-#   for(i in 2:nstarts){
-#     out1 <- f_D0(Y, X, gr.sample, G, D, m, tol, maxiter)
-#     if(out1$LL > out$LL) out <- out1
-#   }
-#   out
-# }
-# 
-# 
-# D0 <- function(Y, X, gr.sample, G, m, nstarts = 10, tol = 10^-4, maxiter = 250) {
-#   
-#   if (any(G < 1)) {
-#     print("Specify G > 0!")
-#     return("Specify G > 0!")
-#   }
-#   
-#   if (any(G == 1)) {
-#     out <- f_D0_nstarts(Y, X, gr.sample, G, D, m, nstarts, tol, maxiter)
-#   } else{
-#     if (length(G) == 1) {
-#       out <- f_D0_nstarts(Y, X, gr.sample, G, D, m, nstarts, tol, maxiter)
-#     } else{
-#       out <- vector("list", length(G) + 1)
-#       names(out) <- c(paste('G', G, sep = '='), 'AIC')
-#       i <- 0
-#       for (g in G) {
-#         i <- i + 1
-#         out[[i]] <- f_D0_nstarts(Y, X, gr.sample, G, D, m, nstarts, tol, maxiter)
-#       }
-#       out[[length(G) + 1]] <- tableBIC(out)
-#     }
-#   }
-#   out
-# }
-
 
 
 tableAIC <- function(out){
