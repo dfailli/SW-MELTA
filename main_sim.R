@@ -552,13 +552,13 @@ summary(rand.meltaSRS)
 summary(rand.mlta.concSRS)
 summary(rand.mltaSRS)
 
-summary(sort(rand.sw.melta.nSRS)[-c(1:25)])
-summary(sort(rand.melta.nSRS)[-c(1:25)])
+summary(rand.sw.melta.nSRS)
+summary(rand.melta.nSRS)
 summary(rand.mlta.conc.nSRS)
 summary(rand.mlta.nSRS)
 
-summary(sort(rand.sw.melta.strat)[-c(1:25)])
-summary(sort(rand.melta.strat)[-c(1:25)])
+summary(rand.sw.melta.strat)
+summary(rand.melta.strat)
 summary(rand.mlta.conc.strat)
 summary(rand.mlta.strat)
 
